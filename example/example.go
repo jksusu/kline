@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"kline"
-	"kline/internal/huobi"
-	"kline/internal/sina"
+	"github.com/jksusu/kline"
+	"github.com/jksusu/kline/internal/huobi"
+	"github.com/jksusu/kline/internal/sina"
 )
 
 func main() {

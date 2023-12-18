@@ -1,8 +1,8 @@
 package sina
 
 import (
-	"kline"
-	"kline/utils"
+	"github.com/jksusu/kline"
+	"github.com/jksusu/kline/utils"
 	"time"
 )
 

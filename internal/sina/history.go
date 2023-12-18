@@ -3,8 +3,8 @@ package sina
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/jksusu/kline"
 	"io"
-	"kline"
 	"net/http"
 )
 

@@ -2,7 +2,7 @@ package huobi
 
 import (
 	"fmt"
-	"kline"
+	"github.com/jksusu/kline"
 	"testing"
 )
 

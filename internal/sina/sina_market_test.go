@@ -2,12 +2,12 @@ package sina
 
 import (
 	"fmt"
-	"kline"
+	"github.com/jksusu/kline"
 	"testing"
 )
 
 func TestNewClient(t *testing.T) {
-	go NewClient().SetIfRowData(true).Subscribe("hf_GC,hf_SI,hf_CAD,hf_HG,fx_susdhkd,fx_saudjpy,fx_shkdcny")
+	go NewClient().SetIfRowData(true).SetSubscribePair("hf_GC,hf_SI,hf_CAD,hf_HG,fx_susdhkd,fx_saudjpy,fx_shkdcny").Start()
 
 	for {
 		select {

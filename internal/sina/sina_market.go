@@ -4,7 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"github.com/gorilla/websocket"
-	"kline"
+	"github.com/jksusu/kline"
 	"log"
 	"net/http"
 	"net/url"

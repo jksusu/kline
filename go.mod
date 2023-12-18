@@ -1,4 +1,4 @@
-module kline
+module github.com/jksusu/kline
 
 go 1.20
 
