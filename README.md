@@ -49,7 +49,7 @@ func Huobi() {
 
 func Sina() {
 	//新浪直接设置 SetPairs 可用
-	go (&kline.Sina{}).NewClient().SetIfRowData(false).SetPairs([]string{"hf_GC", "hf_SI", "fx_susdhkd"}).Start()
+	go (&kline.Sina{}).NewClient().SetRowData(true).SetPairs([]string{"hf_GC", "hf_SI", "fx_susdhkd"}).Start()
 	
 	for {
 		select {
