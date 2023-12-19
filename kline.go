@@ -1,18 +1,12 @@
 package kline
 
-// 数据结构定义
-type MarketQuotations struct {
-	Id    int64   `bson:"id"`
-	Pair  string  `json:"pair"`
-	Open  float64 `json:"open"`
-	Close float64 `json:"close"`
-	High  float64 `json:"high"`
-	Low   float64 `json:"low"`
-	Vol   float64 `json:"vol"`
-}
+import (
+	"github.com/gorilla/websocket"
+	"net/http"
+)
 
 // 分时
-var (
+const (
 	AMinute        = "1min"
 	FiveMinutes    = "5min"
 	FifteenMinutes = "15min"
@@ -23,6 +17,42 @@ var (
 	AWeek          = "1week"
 	OneMonth       = "1mon"
 	AYear          = "1year"
+)
+
+// 数据结构定义
+type (
+	MarketQuotations struct {
+		Id    int64   `bson:"id"`
+		Pair  string  `json:"pair"`
+		Open  float64 `json:"open"`
+		Close float64 `json:"close"`
+		High  float64 `json:"high"`
+		Low   float64 `json:"low"`
+		Vol   float64 `json:"vol"`
+	}
+
+	//实时行情
+	LiveMarketData interface {
+		NewClient() LiveMarketData
+		SetRowData(bool) LiveMarketData
+		SetProxy(string) LiveMarketData
+		SetPeriod([]string) LiveMarketData
+		SetPairs([]string) LiveMarketData
+		SetWsHost(string) LiveMarketData
+		SetDialer(*websocket.Dialer) LiveMarketData
+		WebsocketConnect() (*websocket.Conn, error)
+		Start()
+	}
+
+	Client struct {
+		Header          *http.Header
+		Dialer          *websocket.Dialer
+		Period          []string //订阅的时段
+		Pairs           []string //订阅的交易对
+		WebSocketClient *websocket.Conn
+		IfRowData       bool //是否需要原始数据
+		WsHost          string
+	}
 )
 
 // 通道定义
