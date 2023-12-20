@@ -22,13 +22,13 @@ const (
 // 数据结构定义
 type (
 	MarketQuotations struct {
-		Id    int64   `bson:"id"`
-		Pair  string  `json:"pair"`
-		Open  float64 `json:"open"`
-		Close float64 `json:"close"`
-		High  float64 `json:"high"`
-		Low   float64 `json:"low"`
-		Vol   float64 `json:"vol"`
+		Id    int64   `bson:"id"`    //时间戳
+		Pair  string  `json:"pair"`  //交易对
+		Open  float64 `json:"open"`  //开价
+		Close float64 `json:"close"` //关价
+		High  float64 `json:"high"`  //最高
+		Low   float64 `json:"low"`   //最低
+		Vol   float64 `json:"vol"`   //交易量
 	}
 
 	//实时行情
