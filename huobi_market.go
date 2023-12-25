@@ -28,9 +28,12 @@ type (
 func (c *Huobi) NewClient() LiveMarketData {
 	return &Huobi{
 		&Client{
-			Dialer:    &websocket.Dialer{},
-			IfRowData: false,
-			WsHost:    "wss://api.huobi.pro/ws",
+			Dialer:           &websocket.Dialer{},
+			IfRowData:        false,
+			WsHost:           "wss://api.huobi.pro/ws",
+			LastActivityTime: time.Now().Unix(),
+			MessageNumber:    0,
+			ReconnectNumber:  0,
 		},
 	}
 }
@@ -86,6 +89,7 @@ func (c *Huobi) WebsocketConnect() (*websocket.Conn, error) {
 	if c.WebSocketClient, _, err = c.Dialer.Dial(c.WsHost, nil); err != nil {
 		return c.WebSocketClient, err
 	}
+	c.ReconnectNumber += 1
 	return c.WebSocketClient, nil
 }
 
@@ -148,6 +152,12 @@ func (c *Huobi) Start() {
 					}
 				}
 			}
+		}
+		c.MessageNumber += 1
+		if time.Now().Unix()-c.LastActivityTime >= 60 {
+			log.Println(fmt.Sprintf("huobi message number:%d", c.MessageNumber))
+			log.Println(fmt.Sprintf("huobi reconnect number:%d", c.ReconnectNumber-1))
+			c.LastActivityTime = time.Now().Unix()
 		}
 	}
 }

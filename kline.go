@@ -45,13 +45,16 @@ type (
 	}
 
 	Client struct {
-		Header          *http.Header
-		Dialer          *websocket.Dialer
-		Period          []string //订阅的时段
-		Pairs           []string //订阅的交易对
-		WebSocketClient *websocket.Conn
-		IfRowData       bool //是否需要原始数据
-		WsHost          string
+		Header           *http.Header
+		Dialer           *websocket.Dialer
+		Period           []string //订阅的时段
+		Pairs            []string //订阅的交易对
+		WebSocketClient  *websocket.Conn
+		IfRowData        bool //是否需要原始数据
+		WsHost           string
+		ReconnectNumber  int   //重连次数
+		LastActivityTime int64 //上一次消息时间
+		MessageNumber    int64 //总共接收消息数量
 	}
 )
 

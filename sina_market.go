@@ -20,10 +20,13 @@ type Sina struct {
 func (c *Sina) NewClient() LiveMarketData {
 	return &Sina{
 		&Client{
-			Header:    &http.Header{},
-			Dialer:    &websocket.Dialer{},
-			IfRowData: false,
-			WsHost:    "https://wap.cj.sina.cn",
+			Header:           &http.Header{},
+			Dialer:           &websocket.Dialer{},
+			IfRowData:        false,
+			WsHost:           "wss://hq.sinajs.cn/wskt",
+			LastActivityTime: time.Now().Unix(),
+			MessageNumber:    0,
+			ReconnectNumber:  0,
 		},
 	}
 }
@@ -80,14 +83,16 @@ func (s *Sina) WebsocketConnect() (conn *websocket.Conn, err error) {
 		header.Set("User-Agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1")
 	}
 	if len(header.Get("Origin")) == 0 {
-		header.Set("Origin", s.WsHost)
+		header.Set("Origin", "https://wap.cj.sina.cn")
 	}
 	dialer := websocket.Dialer{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
-	host := fmt.Sprintf("wss://hq.sinajs.cn/wskt?list=%s", s.fmtPairs())
+	host := fmt.Sprintf("%s?list=%s", s.WsHost, s.fmtPairs())
+	fmt.Println("sina subscribe url:", host)
 	s.WebSocketClient, _, err = dialer.Dial(host, *header)
 	if err != nil {
 		return nil, err
 	}
+	s.ReconnectNumber += 1
 	go func() {
 		for {
 			if e := s.WebSocketClient.WriteMessage(websocket.TextMessage, []byte("ping")); e != nil {
@@ -135,13 +140,19 @@ func (s *Sina) Start() {
 								RawData <- &map[string]interface{}{pair: market}
 							}
 						}
+						s.MessageNumber += 1 //消息数量
 					}
 				}
+			}
+			if time.Now().Unix()-s.LastActivityTime >= 60 {
+				log.Println(fmt.Sprintf("sina message number:%d", s.MessageNumber))
+				log.Println(fmt.Sprintf("sina reconnect number:%d", s.ReconnectNumber-1))
+				s.LastActivityTime = time.Now().Unix()
 			}
 		}
 	}
 }
-func (s *Sina) DecodePreciousMetalFutures(market []string, pair string) *MarketQuotations {
+func (*Sina) DecodePreciousMetalFutures(market []string, pair string) *MarketQuotations {
 	return &MarketQuotations{
 		Id:    time.Now().Unix(),
 		Pair:  pair,
@@ -152,7 +163,7 @@ func (s *Sina) DecodePreciousMetalFutures(market []string, pair string) *MarketQ
 		Vol:   utils.ConvertStringToFloat64(market[9]),
 	}
 }
-func (s *Sina) DecodeForeignExchange(market []string, pair string) *MarketQuotations {
+func (*Sina) DecodeForeignExchange(market []string, pair string) *MarketQuotations {
 	return &MarketQuotations{
 		Id:    time.Now().Unix(),
 		Pair:  pair,

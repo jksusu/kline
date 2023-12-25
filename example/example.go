@@ -13,7 +13,8 @@ func main() {
 // 火币
 func Huobi() {
 	c := new(kline.Huobi)
-	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt"}).Start()
+	//.SetProxy("socks5://localhost:1080")
+	go c.NewClient().SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt", "ethusdt"}).Start()
 	for {
 		select {
 		case p := <-kline.MarketChannel:
