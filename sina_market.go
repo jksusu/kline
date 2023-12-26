@@ -103,7 +103,7 @@ func (s *Sina) Start() {
 	go func() {
 		for {
 			if e := s.WebSocketClient.WriteMessage(websocket.TextMessage, []byte("ping")); e != nil {
-				fmt.Println(fmt.Sprintf("write ping error:%s", e.Error()))
+				fmt.Println(fmt.Sprintf("sina write ping error:%s", e.Error()))
 			}
 			time.Sleep(20 * time.Second)
 		}

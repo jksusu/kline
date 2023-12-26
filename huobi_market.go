@@ -20,7 +20,8 @@ import (
 type (
 	Huobi struct {
 		*Client
-		ProxyUrl *url.URL
+		ProxyUrl  *url.URL
+		WriteLock *sync.Mutex
 	}
 	//订阅请求
 	SubRequest struct {
@@ -42,6 +43,7 @@ func (c *Huobi) NewClient() LiveMarketData {
 			MessageNumber:    0,
 			ReconnectNumber:  0,
 		},
+		WriteLock: &sync.Mutex{},
 	}
 }
 func (c *Huobi) SetRowData(ifRow bool) LiveMarketData {
@@ -119,8 +121,11 @@ func (c *Huobi) Start() {
 
 	go func() {
 		for {
-			if e := c.WebSocketClient.WriteMessage(websocket.TextMessage, []byte("ping")); e != nil {
-				fmt.Println(fmt.Sprintf("write ping error:%s", e.Error()))
+			c.WriteLock.Lock()
+			e := c.WebSocketClient.WriteJSON(map[string]interface{}{"ping": time.Now().Unix()})
+			c.WriteLock.Unlock()
+			if e != nil {
+				fmt.Println(fmt.Sprintf("huobi write ping error:%s", e.Error()))
 			}
 			time.Sleep(20 * time.Second)
 		}
@@ -149,7 +154,9 @@ func (c *Huobi) Start() {
 			continue
 		}
 		if ping, ok := JSONData["ping"]; ok {
+			c.WriteLock.Lock()
 			c.WebSocketClient.WriteJSON(map[string]interface{}{"pong": ping})
+			c.WriteLock.Unlock()
 			continue
 		}
 		if ch, ok := JSONData["ch"]; ok {
