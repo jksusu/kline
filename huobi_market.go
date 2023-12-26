@@ -5,6 +5,7 @@ import (
 	"compress/gzip"
 	"crypto/tls"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"io"
@@ -12,11 +13,15 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
 type (
-	Huobi struct{ *Client }
+	Huobi struct {
+		*Client
+		ProxyUrl *url.URL
+	}
 	//订阅请求
 	SubRequest struct {
 		Sub string `json:"sub"`
@@ -24,10 +29,12 @@ type (
 	}
 )
 
+var once sync.Once
+
 // https://www.htx.com/zh-cn/opend/newApiPages/?id=628 火币websocket文档
 func (c *Huobi) NewClient() LiveMarketData {
 	return &Huobi{
-		&Client{
+		Client: &Client{
 			Dialer:           &websocket.Dialer{},
 			IfRowData:        false,
 			WsHost:           "wss://api.huobi.pro/ws",
@@ -52,6 +59,7 @@ func (c *Huobi) SetProxy(sock5 string) LiveMarketData {
 		Proxy: http.ProxyURL(proxyUrl),
 	}
 	c.Dialer = dialer
+	c.ProxyUrl = proxyUrl
 	return c
 }
 
@@ -90,6 +98,7 @@ func (c *Huobi) WebsocketConnect() (*websocket.Conn, error) {
 		return c.WebSocketClient, err
 	}
 	c.ReconnectNumber += 1
+
 	return c.WebSocketClient, nil
 }
 
@@ -104,8 +113,18 @@ func (c *Huobi) Start() {
 		log.Fatal(err)
 		return
 	}
+
 	//发送订阅
 	c.SendSubscribe()
+
+	go func() {
+		for {
+			if e := c.WebSocketClient.WriteMessage(websocket.TextMessage, []byte("ping")); e != nil {
+				fmt.Println(fmt.Sprintf("write ping error:%s", e.Error()))
+			}
+			time.Sleep(20 * time.Second)
+		}
+	}()
 
 	for {
 		_, buf, e := c.WebSocketClient.ReadMessage()
@@ -172,4 +191,29 @@ func (c *Huobi) SendSubscribe() {
 		}
 	}
 	log.Println(fmt.Sprintf("subscribe success coin number:%d", len(c.Pairs)))
+}
+
+func (h *Huobi) History() error {
+	//解析设置的时段
+	if len(h.Period) == 0 {
+		return errors.New("huobi period is empty")
+	}
+	if len(h.Pairs) == 0 {
+		return errors.New("huobi pairs is empty")
+	}
+
+	for _, pair := range h.Pairs {
+		for _, period := range h.Period {
+			if period == TwoHours {
+				fmt.Println("Not Supported two hours")
+				continue
+			}
+			if err := (&HuobiHistory{pair, period, h.ProxyUrl}).GetHuoBiHistory(); err != nil {
+				fmt.Println(err)
+			}
+
+			time.Sleep(5 * time.Second)
+		}
+	}
+	return nil
 }

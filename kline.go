@@ -12,7 +12,8 @@ const (
 	FifteenMinutes = "15min"
 	Minutes        = "30min"
 	AnHour         = "60min"
-	FourHours      = "4hour"
+	TwoHours       = "120min"
+	FourHours      = "240min"
 	ADay           = "1day"
 	AWeek          = "1week"
 	OneMonth       = "1mon"
@@ -31,6 +32,12 @@ type (
 		Vol   float64 `json:"vol"`   //交易量
 	}
 
+	MarketHistory struct {
+		*MarketQuotations
+		Pair   string `json:"pair"`
+		Period string `json:"period"`
+	}
+
 	//实时行情
 	LiveMarketData interface {
 		NewClient() LiveMarketData
@@ -40,6 +47,7 @@ type (
 		SetPairs([]string) LiveMarketData
 		SetWsHost(string) LiveMarketData
 		SetDialer(*websocket.Dialer) LiveMarketData
+		History() error
 		WebsocketConnect() (*websocket.Conn, error)
 		Start()
 	}
@@ -60,6 +68,7 @@ type (
 
 // 通道定义
 var (
-	MarketChannel = make(chan *MarketQuotations, 2048)       //标准格式
-	RawData       = make(chan *map[string]interface{}, 2048) //原始格式
+	MarketChannel        = make(chan *MarketQuotations, 2048)       //标准格式
+	MarketHistoryChannel = make(chan *MarketHistory, 4096)          //历史行情
+	RawData              = make(chan *map[string]interface{}, 2048) //原始格式
 )

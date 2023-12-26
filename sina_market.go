@@ -2,13 +2,13 @@ package kline
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/jksusu/kline/utils"
 	"log"
 	"net/http"
 	"net/url"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -93,20 +93,22 @@ func (s *Sina) WebsocketConnect() (conn *websocket.Conn, err error) {
 		return nil, err
 	}
 	s.ReconnectNumber += 1
-	go func() {
-		for {
-			if e := s.WebSocketClient.WriteMessage(websocket.TextMessage, []byte("ping")); e != nil {
-				runtime.Goexit()
-			}
-			time.Sleep(20 * time.Second)
-		}
-	}()
 	return
 }
 func (s *Sina) Start() {
 	if _, err := s.WebsocketConnect(); err != nil {
 		panic("sina conn fail")
 	}
+
+	go func() {
+		for {
+			if e := s.WebSocketClient.WriteMessage(websocket.TextMessage, []byte("ping")); e != nil {
+				fmt.Println(fmt.Sprintf("write ping error:%s", e.Error()))
+			}
+			time.Sleep(20 * time.Second)
+		}
+	}()
+
 	for {
 		_, buf, err := s.WebSocketClient.ReadMessage()
 		if err != nil {
@@ -186,4 +188,33 @@ func (s *Sina) fmtPairs() string {
 		str = str[:len(str)-1]
 	}
 	return str
+}
+
+func (s *Sina) History() error {
+	//解析设置的时段
+	if len(s.Period) == 0 {
+		return errors.New("period is empty")
+	}
+	if len(s.Pairs) == 0 {
+		return errors.New("pairs is empty")
+	}
+
+	for _, pair := range s.Pairs {
+		pairArr := strings.Split(pair, "_")
+		if len(pairArr) != 2 {
+			continue
+		}
+		for _, period := range s.Period {
+			switch pairArr[0] {
+			case "hf":
+				//金属分类的
+				(&SinaHistory{pair, period}).FinanceDispatch(pair, period)
+			case "fx":
+				//外汇分类的
+				(&SinaHistory{pair, period}).ForeignExchangeDispatch(pair, period)
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}
+	return nil
 }
