@@ -8,7 +8,7 @@
 go get github.com/jksusu/kline
 ```
 
-Examples:
+Examples: 详细功能请看 [example](example)
 
 ```go
 package main
@@ -62,7 +62,6 @@ func Sina() {
 		}
 	}
 }
-
 ```
 
 ## Warn
