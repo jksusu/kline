@@ -101,6 +101,8 @@ func (c *Huobi) WebsocketConnect() (*websocket.Conn, error) {
 	}
 	c.ReconnectNumber += 1
 
+	c.SendSubscribe() //发送订阅 #bug防止重连后无数据
+
 	return c.WebSocketClient, nil
 }
 
@@ -116,27 +118,14 @@ func (c *Huobi) Start() {
 		return
 	}
 
-	//发送订阅
-	c.SendSubscribe()
-
-	go func() {
-		for {
-			c.WriteLock.Lock()
-			e := c.WebSocketClient.WriteJSON(map[string]interface{}{"ping": time.Now().Unix()})
-			c.WriteLock.Unlock()
-			if e != nil {
-				fmt.Println(fmt.Sprintf("huobi write ping error:%s", e.Error()))
-			}
-			time.Sleep(20 * time.Second)
-		}
-	}()
-
 	for {
 		_, buf, e := c.WebSocketClient.ReadMessage()
 		if e != nil {
-			c.WebsocketConnect()
-			time.Sleep(5 * time.Second)
-			continue
+			if _, err := c.WebsocketConnect(); err != nil {
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			log.Println("huobi reconnect connect success")
 		}
 		greader, err := gzip.NewReader(bytes.NewReader(buf))
 		if err != nil {
