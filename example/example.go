@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"github.com/jksusu/kline"
+	"log"
 )
 
 func main() {
 	//HuobiHistory()
 
-	SinaHistory()
-	/*go Huobi()
-	Sina()*/
+	//SinaHistory()
+	Huobi()
+	//Sina()
 }
 
 // 火币
@@ -21,10 +22,10 @@ func Huobi() {
 	for {
 		select {
 		case p := <-kline.MarketChannel:
-			fmt.Println(p)
+			log.Println(p)
 			break
 		case p := <-kline.RawData:
-			fmt.Println(p)
+			log.Println(p)
 			break
 		}
 	}
@@ -59,7 +60,6 @@ func SinaHistory() {
 		}
 	}
 }
-
 func HuobiHistory() {
 	c := (&kline.Huobi{}).NewClient().SetProxy("socks5://localhost:1080")
 	c.SetPairs([]string{"btcusdt", "ethusdt"})

@@ -61,7 +61,7 @@ type (
 		IfRowData        bool //是否需要原始数据
 		WsHost           string
 		ReconnectNumber  int   //重连次数
-		LastActivityTime int64 //上一次消息时间
+		LastActivityTime int64 //最后一次接收到消息时间
 		MessageNumber    int64 //总共接收消息数量
 	}
 )
