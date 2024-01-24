@@ -4,14 +4,16 @@ import (
 	"fmt"
 	"github.com/jksusu/kline"
 	"log"
+	"os"
+	"strings"
 )
 
 func main() {
 	//HuobiHistory()
 
 	//SinaHistory()
-	Huobi()
-	//Sina()
+	go Huobi()
+	Sina()
 }
 
 // 火币
@@ -32,8 +34,9 @@ func Huobi() {
 }
 
 func Sina() {
+	pairs := ReadFile("./sina.txt")
 	s := (&kline.Sina{}).NewClient()
-	go s.SetRowData(false).SetPairs([]string{"hf_GC", "hf_SI", "fx_susdhkd"}).Start()
+	go s.SetRowData(false).SetPairs(pairs).Start()
 	for {
 		select {
 		case p := <-kline.MarketChannel:
@@ -73,4 +76,13 @@ func HuobiHistory() {
 			break
 		}
 	}
+}
+
+func ReadFile(filename string) []string {
+	bytes, err := os.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	data := string(bytes)
+	return strings.Split(data, "\n")
 }
