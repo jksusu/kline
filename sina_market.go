@@ -23,7 +23,7 @@ func (c *Sina) NewClient() LiveMarketData {
 			Header:           &http.Header{},
 			Dialer:           &websocket.Dialer{},
 			IfRowData:        false,
-			WsHost:           "wss://hq.sinajs.cn/wskt",
+			WsHost:           "wss://w.sinajs.cn/wskt",
 			LastActivityTime: time.Now().Unix(),
 			MessageNumber:    0,
 			ReconnectNumber:  0,
@@ -124,16 +124,19 @@ func (s *Sina) Start() {
 				if len(hf) == 2 {
 					pair := hf[0] //相对行情交易对
 					if len(pair) != 0 {
-						market := strings.Split(hf[1], ",") //行情数据
-						prefix := strings.Split(pair, "_")  //解析pair前缀
-						if len(prefix) != 2 {
+						market := strings.Split(hf[1], ",")   //行情数据
+						prefixStr := strings.Split(pair, "_") //解析pair前缀
+						if len(prefixStr) != 2 {
 							continue
 						}
+						prefix := prefixStr[0]
 						var marketQuotations *MarketQuotations
-						if prefix[0] == "hf" {
+						if prefix == "hf" {
 							marketQuotations = s.DecodePreciousMetalFutures(market, pair) //贵金属
-						} else if prefix[0] == "fx" {
+						} else if prefix == "fx" {
 							marketQuotations = s.DecodeForeignExchange(market, pair) //外汇
+						} else if prefix == "gb" {
+							marketQuotations = s.DecodeGb(market, pair) //股票
 						}
 						if marketQuotations != nil {
 							marketQuotations.Pair = pair
@@ -174,6 +177,19 @@ func (*Sina) DecodeForeignExchange(market []string, pair string) *MarketQuotatio
 		High:  utils.ConvertStringToFloat64(market[6]),
 		Low:   utils.ConvertStringToFloat64(market[7]),
 		Vol:   utils.ConvertStringToFloat64(market[11]),
+	}
+}
+
+// 2024-03-27 09:41:05
+func (*Sina) DecodeGb(market []string, pair string) *MarketQuotations {
+	return &MarketQuotations{
+		Id:    time.Now().Unix(),
+		Pair:  pair,
+		Open:  utils.ConvertStringToFloat64(market[7]),
+		Close: utils.ConvertStringToFloat64(market[1]),
+		High:  utils.ConvertStringToFloat64(market[5]),
+		Low:   utils.ConvertStringToFloat64(market[7]),
+		Vol:   utils.ConvertStringToFloat64(market[10]),
 	}
 }
 

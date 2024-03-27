@@ -205,6 +205,7 @@ func (h *Huobi) History() error {
 				continue
 			}
 			if err := (&HuobiHistory{pair, period, h.ProxyUrl}).GetHuoBiHistory(); err != nil {
+				log.Println(err)
 				fmt.Println(err)
 			}
 

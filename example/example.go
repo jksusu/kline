@@ -12,7 +12,7 @@ func main() {
 	//HuobiHistory()
 
 	//SinaHistory()
-	go Huobi()
+	//go Huobi()
 	Sina()
 }
 
@@ -34,9 +34,9 @@ func Huobi() {
 }
 
 func Sina() {
-	pairs := ReadFile("./sina.txt")
+	pairs := ReadFile("./gb.txt")
 	s := (&kline.Sina{}).NewClient()
-	go s.SetRowData(false).SetPairs(pairs).Start()
+	go s.SetPairs(pairs).SetRowData(true).Start()
 	for {
 		select {
 		case p := <-kline.MarketChannel:
