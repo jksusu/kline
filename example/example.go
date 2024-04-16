@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/jksusu/kline"
 	"log"
@@ -34,9 +35,22 @@ func Huobi() {
 }
 
 func Sina() {
-	pairs := ReadFile("./gb.txt")
+	data := ReadJsonFile("./sina/wh.json")
+
+	//处理成对应的格式
+	var pairs []string
+	for k, _ := range data {
+		if len(pairs) >= 5 {
+			continue
+		}
+		//kk := "hf_" + k
+		kk := "fx_s" + strings.ToLower(k)
+		pairs = append(pairs, kk)
+
+	}
+
 	s := (&kline.Sina{}).NewClient()
-	go s.SetPairs(pairs).SetRowData(true).Start()
+	go s.SetPairs(pairs).Start()
 	for {
 		select {
 		case p := <-kline.MarketChannel:
@@ -78,11 +92,13 @@ func HuobiHistory() {
 	}
 }
 
-func ReadFile(filename string) []string {
+func ReadJsonFile(filename string) map[string]string {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
 	data := string(bytes)
-	return strings.Split(data, "\n")
+	m := map[string]string{}
+	json.Unmarshal([]byte(data), &m)
+	return m
 }
