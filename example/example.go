@@ -35,7 +35,7 @@ func Huobi() {
 }
 
 func Sina() {
-	data := ReadJsonFile("./sina/wh.json")
+	data := ReadJsonFile("./sina/futures/global_futures.json")
 
 	//处理成对应的格式
 	var pairs []string
@@ -44,9 +44,8 @@ func Sina() {
 			continue
 		}
 		//kk := "hf_" + k
-		kk := "fx_s" + strings.ToLower(k)
+		kk := "gb_" + strings.ToLower(k)
 		pairs = append(pairs, kk)
-
 	}
 
 	s := (&kline.Sina{}).NewClient()
