@@ -82,6 +82,9 @@ func (b *BaiduHistory) getHistory(src string) (result []*baiduResultsMink, err e
 	if err != nil {
 		return
 	}
+	if resp.StatusCode != http.StatusOK {
+		return result, errors.New("status code is not 200")
+	}
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
