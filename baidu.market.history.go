@@ -85,7 +85,7 @@ func (b *BaiduHistory) getHistory(src string) (result []*baiduResultsMink, err e
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
-	if body == nil {
+	if len(body) == 0 {
 		return result, errors.New("body is nil")
 	}
 	var baiduResponse *BaiduResponse
