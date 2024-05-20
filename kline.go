@@ -23,13 +23,16 @@ const (
 // 数据结构定义
 type (
 	MarketQuotations struct {
-		Id    int64   `bson:"id"`    //时间戳
-		Pair  string  `json:"pair"`  //交易对
-		Open  float64 `json:"open"`  //开价
-		Close float64 `json:"close"` //关价
-		High  float64 `json:"high"`  //最高
-		Low   float64 `json:"low"`   //最低
-		Vol   float64 `json:"vol"`   //交易量
+		Id    int64   `bson:"id"`       //时间戳
+		Pair  string  `json:"pair"`     //交易对
+		Open  float64 `json:"open"`     //开价
+		Close float64 `json:"close"`    //关价
+		High  float64 `json:"high"`     //最高
+		Low   float64 `json:"low"`      //最低
+		Vol   float64 `json:"vol"`      //交易量
+		DOpen float64 `json:"day_open"` //今日开盘价 = 昨日收盘价
+		DHigh float64 `json:"day_high"` //今日最高
+		DLow  float64 `json:"day_low"`  //今日最低
 	}
 
 	MarketHistory struct {

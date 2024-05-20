@@ -14,11 +14,18 @@ func main() {
 
 	//SinaHistory()
 	//go Huobi()
+	arr, err := (&kline.BaiduHistory{}).GetSharesDayHistory("AAPL")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(arr)
 	Sina()
 }
 
 // 火币
 func Huobi() {
+
 	c := new(kline.Huobi)
 	//.SetProxy("socks5://localhost:1080")
 	go c.NewClient().SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt", "ethusdt"}).Start()
