@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/tls"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/websocket"
+	"github.com/tidwall/gjson"
 	"io"
 	"log"
 	"net/http"
@@ -71,7 +71,6 @@ func (c *Huobi) SetPeriod(periodArr []string) LiveMarketData {
 	c.Period = periodArr
 	return c
 }
-
 func (c *Huobi) SetPairs(pairs []string) LiveMarketData {
 	c.Pairs = pairs
 	return c
@@ -137,34 +136,31 @@ func (c *Huobi) Start() {
 			log.Println(e.Error())
 			continue
 		}
-		var JSONData map[string]interface{}
-		err = json.Unmarshal(buf, &JSONData)
-		if err != nil || JSONData == nil {
-			continue
-		}
-		if ping, ok := JSONData["ping"]; ok {
+		data := string(buf)
+		if ping := gjson.Get(data, "ping"); ping.Exists() {
 			c.WriteLock.Lock()
 			c.WebSocketClient.WriteJSON(map[string]interface{}{"pong": ping})
 			c.WriteLock.Unlock()
 			continue
 		}
-		if ch, ok := JSONData["ch"]; ok {
-			title := strings.Split(ch.(string), ".")
-			if len(title) > 2 && title[2] == "kline" {
-				if tick, tickOk := JSONData["tick"].(map[string]interface{}); tickOk {
-					MarketChannel <- &MarketQuotations{
-						Id:    int64(tick["id"].(float64)),
-						Pair:  title[1],
-						Open:  tick["open"].(float64),
-						Close: tick["close"].(float64),
-						High:  tick["high"].(float64),
-						Low:   tick["low"].(float64),
-						Vol:   tick["vol"].(float64),
-					}
-					//原始数据
-					if c.IfRowData {
-						RawData <- &map[string]interface{}{title[1]: JSONData}
-					}
+		if ch := gjson.Get(data, "ch"); ch.Exists() {
+			title := strings.Split(ch.String(), ".")
+			if tick := gjson.Get(data, "tick"); tick.Exists() {
+				tickArr := tick.Map()
+				MarketChannel <- &MarketQuotations{
+					Id:     tickArr["id"].Int(),
+					Period: title[3],
+					Pair:   title[1],
+					Open:   tickArr["open"].Float(),
+					Close:  tickArr["close"].Float(),
+					High:   tickArr["high"].Float(),
+					Low:    tickArr["low"].Float(),
+					Vol:    tickArr["vol"].Float(),
+					Amount: tickArr["vol"].Float(),
+				}
+				//原始数据
+				if c.IfRowData {
+					RawData <- data
 				}
 			}
 		}

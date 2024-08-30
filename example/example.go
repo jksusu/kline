@@ -13,14 +13,33 @@ func main() {
 	//HuobiHistory()
 
 	//SinaHistory()
-	//go Huobi()
-	arr, err := (&kline.BaiduHistory{}).GetSharesDayHistory("AAPL")
-	if err != nil {
-		fmt.Println(err)
-		return
+	Binance()
+	//Huobi()
+	//arr, err := (&kline.BaiduHistory{}).GetSharesDayHistory("AAPL")
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+	//fmt.Println(arr)
+	//Sina()
+}
+
+// 火币
+func Binance() {
+	c := new(kline.Binance)
+	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt"}).History()
+	for {
+		select {
+		case p := <-kline.MarketChannel:
+			log.Println(p)
+			break
+		case p := <-kline.RawData:
+			log.Println(p)
+			break
+		case p := <-kline.MarketHistoryChannel:
+			fmt.Println(p)
+		}
 	}
-	fmt.Println(arr)
-	Sina()
 }
 
 // 火币
@@ -28,7 +47,7 @@ func Huobi() {
 
 	c := new(kline.Huobi)
 	//.SetProxy("socks5://localhost:1080")
-	go c.NewClient().SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt", "ethusdt"}).Start()
+	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt", "ethusdt"}).Start()
 	for {
 		select {
 		case p := <-kline.MarketChannel:
