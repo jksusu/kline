@@ -27,7 +27,7 @@ func main() {
 // 火币
 func Binance() {
 	c := new(kline.Binance)
-	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt"}).History()
+	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute, kline.Minutes}).SetPairs([]string{"btcusdt", "ethusdt", "pepeusdt"}).History()
 	for {
 		select {
 		case p := <-kline.MarketChannel:
@@ -37,7 +37,7 @@ func Binance() {
 			log.Println(p)
 			break
 		case p := <-kline.MarketHistoryChannel:
-			fmt.Println(p)
+			fmt.Println(p.MarketQuotations)
 		}
 	}
 }
@@ -47,7 +47,7 @@ func Huobi() {
 
 	c := new(kline.Huobi)
 	//.SetProxy("socks5://localhost:1080")
-	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt", "ethusdt"}).Start()
+	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute}).SetPairs([]string{"btcusdt", "ethusdt"}).History()
 	for {
 		select {
 		case p := <-kline.MarketChannel:

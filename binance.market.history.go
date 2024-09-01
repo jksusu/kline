@@ -2,7 +2,9 @@ package kline
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"github.com/jksusu/kline/utils"
 	"io"
 	"net/http"
 	"net/url"
@@ -37,6 +39,29 @@ func (h *HuobiHistory) GetBinanceHistory() error {
 	}
 	data := string(body)
 
-	fmt.Println(data)
+	if data != "" {
+		arr := [][]interface{}{}
+		json.Unmarshal([]byte(data), &arr)
+		if len(arr) > 0 {
+			for _, v := range arr {
+				hq := &MarketHistory{
+					Period: h.Period,
+					Pair:   h.Pair,
+					MarketQuotations: &MarketQuotations{
+						Id:     utils.ConvertStringToInt64(fmt.Sprintf("%v", v[0])),
+						Pair:   h.Pair,
+						Period: h.Period,
+						Open:   utils.ConvertStringToFloat64(fmt.Sprintf("%v", v[1])),
+						Close:  utils.ConvertStringToFloat64(fmt.Sprintf("%v", v[4])),
+						High:   utils.ConvertStringToFloat64(fmt.Sprintf("%v", v[2])),
+						Low:    utils.ConvertStringToFloat64(fmt.Sprintf("%v", v[3])),
+						Vol:    utils.ConvertStringToFloat64(fmt.Sprintf("%v", v[5])),
+						Amount: utils.ConvertStringToFloat64(fmt.Sprintf("%v", v[7])),
+					},
+				}
+				MarketHistoryChannel <- hq
+			}
+		}
+	}
 	return nil
 }
