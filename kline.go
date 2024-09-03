@@ -20,8 +20,6 @@ const (
 	AYear          = "1year"
 )
 
-// 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M 币安的时间规则
-
 // 数据结构定义
 type (
 	MarketQuotations struct {

@@ -19,6 +19,9 @@ func GetTimeModeling(period string, t int64) int64 {
 	case AnHour:
 		timestamp = t - (t % int64(60*60))
 		break
+	case TwoHours:
+		timestamp = t - (t % int64(2*60*60))
+		break
 	case FourHours:
 		timestamp = t - (t % int64(4*60*60))
 		break

@@ -27,8 +27,7 @@ type (
 	}
 )
 
-//
-
+// 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 8h, 12h, 1d, 3d, 1w, 1M 币安的时间规则
 var (
 	SUBSCRIBE          = "SUBSCRIBE"          //订阅
 	UNSUBSCRIBE        = "UNSUBSCRIBE"        //取消
@@ -81,6 +80,10 @@ func (c *Binance) SetRowData(ifRow bool) LiveMarketData {
 
 // host = socks5://localhost:1080
 func (c *Binance) SetProxy(sock5 string) LiveMarketData {
+	if sock5 == "" {
+		log.Println("sock5 is null")
+		return c
+	}
 	proxyUrl, err := url.Parse(sock5)
 	if err != nil {
 		log.Fatal(err)
