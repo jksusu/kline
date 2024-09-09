@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
 )
@@ -174,7 +175,7 @@ func (c *Binance) Start() {
 			MarketChannel <- &MarketQuotations{
 				Id:     gjson.Get(data, "k.T").Int(),
 				Period: BinancePeriodMapValKey[gjson.Get(data, "k.i").String()],
-				Pair:   gjson.Get(data, "k.s").String(),
+				Pair:   strings.ToLower(gjson.Get(data, "k.s").String()),
 				Open:   gjson.Get(data, "k.o").Float(),
 				Close:  gjson.Get(data, "k.c").Float(),
 				High:   gjson.Get(data, "k.h").Float(),
@@ -186,15 +187,17 @@ func (c *Binance) Start() {
 			if c.IfRowData {
 				MarketRawData <- data
 			}
-			c.MessageNumber += 1
-			if time.Now().Unix()-c.LastActivityTime >= 60 {
-				log.Println(fmt.Sprintf("Binance message number:%d", c.MessageNumber))
-				log.Println(fmt.Sprintf("Binance reconnect number:%d", c.ReconnectNumber-1))
-				c.LastActivityTime = time.Now().Unix()
-			}
 		} else if event == "depthUpdate" {
-			c.Depth(gjson.Get(data, "b").Array(), gjson.Get(data, "s").String())
-			c.Depth(gjson.Get(data, "a").Array(), gjson.Get(data, "s").String())
+			pair := strings.ToLower(gjson.Get(data, "s").String())
+			c.Depth(gjson.Get(data, "b").Array(), pair)
+			c.Depth(gjson.Get(data, "a").Array(), pair)
+		}
+
+		c.MessageNumber += 1
+		if time.Now().Unix()-c.LastActivityTime >= 60 {
+			log.Println(fmt.Sprintf("Binance message number:%d", c.MessageNumber))
+			log.Println(fmt.Sprintf("Binance reconnect number:%d", c.ReconnectNumber-1))
+			c.LastActivityTime = time.Now().Unix()
 		}
 	}
 }
