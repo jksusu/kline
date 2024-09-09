@@ -27,13 +27,16 @@ func main() {
 // 火币
 func Binance() {
 	c := new(kline.Binance)
-	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute, kline.Minutes}).SetPairs([]string{"btcusdt", "ethusdt", "pepeusdt"}).History()
+	go c.NewClient().SetProxy("socks5://localhost:1080").SetPeriod([]string{kline.AMinute, kline.Minutes}).SetPairs([]string{"btcusdt", "ethusdt", "pepeusdt"}).Start()
 	for {
 		select {
 		case p := <-kline.MarketChannel:
 			log.Println(p)
 			break
-		case p := <-kline.RawData:
+		case p := <-kline.DepthChannel:
+			log.Println(p)
+			break
+		case p := <-kline.MarketRawData:
 			log.Println(p)
 			break
 		case p := <-kline.MarketHistoryChannel:
@@ -53,7 +56,7 @@ func Huobi() {
 		case p := <-kline.MarketChannel:
 			log.Println(p)
 			break
-		case p := <-kline.RawData:
+		case p := <-kline.MarketRawData:
 			log.Println(p)
 			break
 		}
@@ -81,7 +84,7 @@ func Sina() {
 		case p := <-kline.MarketChannel:
 			fmt.Println(p)
 			break
-		case p := <-kline.RawData:
+		case p := <-kline.MarketRawData:
 			fmt.Println(p)
 			break
 		}

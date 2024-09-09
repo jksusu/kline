@@ -142,7 +142,7 @@ func (s *Sina) Start() {
 							marketQuotations.Pair = pair
 							MarketChannel <- marketQuotations
 							if s.IfRowData {
-								RawData <- ""
+								MarketRawData <- ""
 							}
 						}
 						s.MessageNumber += 1 //消息数量

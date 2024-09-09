@@ -169,7 +169,8 @@ func (c *Binance) Start() {
 			continue
 		}
 		//归集行情事件
-		if event := gjson.Get(data, "e").String(); event == "kline" {
+		event := gjson.Get(data, "e").String()
+		if event == "kline" {
 			MarketChannel <- &MarketQuotations{
 				Id:     gjson.Get(data, "k.T").Int(),
 				Period: BinancePeriodMapValKey[gjson.Get(data, "k.i").String()],
@@ -183,13 +184,37 @@ func (c *Binance) Start() {
 			}
 			//原始数据
 			if c.IfRowData {
-				RawData <- data
+				MarketRawData <- data
 			}
 			c.MessageNumber += 1
 			if time.Now().Unix()-c.LastActivityTime >= 60 {
 				log.Println(fmt.Sprintf("Binance message number:%d", c.MessageNumber))
 				log.Println(fmt.Sprintf("Binance reconnect number:%d", c.ReconnectNumber-1))
 				c.LastActivityTime = time.Now().Unix()
+			}
+		} else if event == "depthUpdate" {
+			c.Depth(gjson.Get(data, "b").Array(), gjson.Get(data, "s").String())
+			c.Depth(gjson.Get(data, "a").Array(), gjson.Get(data, "s").String())
+		}
+	}
+}
+
+// 深度数据
+func (h *Binance) Depth(arr []gjson.Result, pair string) {
+	if len(arr) > 0 {
+		var priceVolumes []PriceVolume
+		for _, v := range arr {
+			price := v.Array()[0].Float()
+			volume := v.Array()[1].Float()
+			if price > 0 && volume > 0 {
+				priceVolumes = append(priceVolumes, PriceVolume{price, volume})
+			}
+		}
+		if len(priceVolumes) > 0 {
+			DepthChannel <- &Depth{
+				Pair: pair,
+				Asks: priceVolumes,
+				Bids: priceVolumes,
 			}
 		}
 	}
@@ -218,15 +243,24 @@ func (h *Binance) History() error {
 
 func (c *Binance) SendSubscribe() {
 	//处理 pair
-	var pairs []string
+	var (
+		markeyPairs []string
+		depthPairs  []string
+	)
 	for _, pair := range c.Pairs {
+		depthPairs = append(depthPairs, fmt.Sprintf("%s@depth@100ms", pair))
 		for _, p := range c.Period {
-			pairs = append(pairs, fmt.Sprintf("%s@kline_%s", pair, BinancePeriodMap[p]))
+			markeyPairs = append(markeyPairs, fmt.Sprintf("%s@kline_%s", pair, BinancePeriodMap[p]))
 		}
 	}
 	_ = c.WebSocketClient.WriteJSON(&BinanceSubRequest{
 		Method: SUBSCRIBE,
-		Params: pairs,
+		Params: depthPairs,
+		Id:     subId,
+	})
+	_ = c.WebSocketClient.WriteJSON(&BinanceSubRequest{
+		Method: SUBSCRIBE,
+		Params: markeyPairs,
 		Id:     subId,
 	})
 	// 获取订阅的结果
@@ -236,4 +270,9 @@ func (c *Binance) SendSubscribe() {
 	})
 
 	log.Println(fmt.Sprintf("subscribe success coin number:%d", len(c.Pairs)))
+}
+
+// 设置深度数据订阅
+func (c *Binance) SendSubDepth() {
+
 }

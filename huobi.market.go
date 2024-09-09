@@ -160,7 +160,7 @@ func (c *Huobi) Start() {
 				}
 				//原始数据
 				if c.IfRowData {
-					RawData <- data
+					MarketRawData <- data
 				}
 			}
 		}

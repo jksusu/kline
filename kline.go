@@ -33,6 +33,16 @@ type (
 		Vol    float64 `json:"v"` //交易量
 		Amount float64 `json:"a"` //成交额
 	}
+	//深度数据
+	Depth struct {
+		Pair string        `json:"p"` //交易对
+		Asks []PriceVolume `json:"a"`
+		Bids []PriceVolume `json:"b"`
+	}
+	PriceVolume struct {
+		Price  float64 `json:"p"`
+		Volume float64 `json:"v"`
+	}
 
 	MarketHistory struct {
 		*MarketQuotations
@@ -70,7 +80,8 @@ type (
 
 // 通道定义
 var (
-	MarketChannel        = make(chan *MarketQuotations, 2048) //标准格式
+	MarketChannel        = make(chan *MarketQuotations, 2048) //行情格式
+	DepthChannel         = make(chan *Depth, 2048)            //深度数据
 	MarketHistoryChannel = make(chan *MarketHistory, 4096)    //历史行情
-	RawData              = make(chan string, 2048)            //原始格式
+	MarketRawData        = make(chan string, 2048)            //行情原始格式
 )
