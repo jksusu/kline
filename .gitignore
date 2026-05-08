@@ -8,4 +8,4 @@
 *.njsproj
 *.sln
 *.local
-
+.worktrees/

@@ -14,6 +14,7 @@ func main() {
 
 	//SinaHistory()
 	Binance()
+	//Baidu()
 	//Huobi()
 	//arr, err := (&kline.BaiduHistory{}).GetSharesDayHistory("AAPL")
 	//if err != nil {
@@ -22,6 +23,21 @@ func main() {
 	//}
 	//fmt.Println(arr)
 	//Sina()
+}
+
+func Baidu() {
+	go (&kline.Baidu{}).NewClient().SetRowData(true).SetPeriod([]string{"snapshot", "tick"}).SetPairs([]string{"002541"}).Start()
+
+	for {
+		select {
+		case p := <-kline.MarketChannel:
+			log.Println(p)
+		case p := <-kline.DepthChannel:
+			log.Println(p)
+		case p := <-kline.MarketRawData:
+			log.Println(p)
+		}
+	}
 }
 
 // 火币

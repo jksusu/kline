@@ -1,5 +1,5 @@
 > ## Kline hq
-> huobi sian 实时行情 websocket 接口
+> huobi sina baidu 实时行情 websocket 接口
 >
 > **Thank you!**
 ## Install
@@ -39,7 +39,7 @@ func Huobi() {
 		case p := <-kline.MarketChannel:
 			fmt.Println(p)
 			break
-		case p := <-kline.RawData:
+		case p := <-kline.MarketRawData:
 			//原始数据，如果设置了 SetRowData
 			fmt.Println(p)
 			break
@@ -56,13 +56,39 @@ func Sina() {
 		case p := <-kline.MarketChannel:
 			fmt.Println(p)
 			break
-		case p := <-kline.RawData:
+		case p := <-kline.MarketRawData:
 			fmt.Println(p)
 			break
 		}
 	}
 }
+
+func Baidu() {
+	// 默认只订阅 snapshot；如果需要 tick，传 SetPeriod([]string{"tick"}) 或两个都传
+	go (&kline.Baidu{}).NewClient().SetRowData(true).SetPeriod([]string{"snapshot", "tick"}).SetPairs([]string{"002541"}).Start()
+
+	for {
+		select {
+		case p := <-kline.MarketChannel:
+			fmt.Println(p)
+		case p := <-kline.DepthChannel:
+			fmt.Println(p)
+		case p := <-kline.MarketRawData:
+			fmt.Println(p)
+		}
+	}
+}
 ```
+
+百度 websocket 渠道说明：
+
+- `SetPairs([]string{"002541"})` 会默认按 `ab:stock` 订阅 A 股股票。
+- 也支持扩展格式 `market:financeType:code[:name]`，例如 `hk:stock:00700:腾讯控股`。
+- 不传 `SetPeriod()` 时，默认只订阅 `snapshot`。
+- `SetPeriod([]string{"tick"})` 只订阅 `tick`。
+- `SetPeriod([]string{"snapshot", "tick"})` 会同时订阅两个产品，按传入顺序发送订阅请求。
+- `snapshot` 会结构化输出到 `MarketChannel`、`DepthChannel`。
+- `tick` 目前保留在 `MarketRawData`，等字段确认后再做结构化映射。
 
 ## Warn
 > 程序未做异常处理，请自己处理异常
